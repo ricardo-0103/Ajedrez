@@ -3,10 +3,14 @@
 class Piece {
   row;
   column;
+  _name;
+  _dir_img;
 
-  constructor(row, column) {
+  constructor(row, column, name, dir_img) {
     this.row = row;
     this.column = column;
+    this._name = name;
+    this._dir_img = `./assets/img/${dir_img}.png`;
   }
 
   set row(row) {
@@ -24,85 +28,93 @@ class Piece {
   get column() {
     return this._column;
   }
+
+  get name() {
+    return this._name;
+  }
+
+  get dir_img() {
+    return this._dir_img;
+  }
 }
 
 class Peon extends Piece {
-  constructor(row, column) {
-    super(row, column);
+  constructor(row, column, _name, _dir_img) {
+    super(row, column, _name, _dir_img);
   }
 }
 
 class Torre extends Piece {
-  constructor(row, column) {
-    super(row, column);
+  constructor(row, column, _name, _dir_img) {
+    super(row, column, _name, _dir_img);
   }
 }
 
 class Obispo extends Piece {
-  constructor(row, column) {
-    super(row, column);
+  constructor(row, column, _name, _dir_img) {
+    super(row, column, _name, _dir_img);
   }
 }
 
 class Caballo extends Piece {
-  constructor(row, column) {
-    super(row, column);
+  constructor(row, column, _name, _dir_img) {
+    super(row, column, _name, _dir_img);
   }
 }
 
 class Rey extends Piece {
-  constructor(row, column) {
-    super(row, column);
+  constructor(row, column, _name, _dir_img) {
+    super(row, column, _name, _dir_img);
   }
 }
 
 class Reina extends Piece {
-  constructor(row, column) {
-    super(row, column);
+  constructor(row, column, _name, _dir_img) {
+    super(row, column, _name, _dir_img);
   }
 }
 
 // Create the pieces
-const torre_n_1 = new Torre(0, 0);
-const torre_n_2 = new Torre(0, 7);
-const caballo_n_1 = new Caballo(0, 1);
-const caballo_n_2 = new Caballo(0, 6);
-const obispo_n_1 = new Obispo(0, 2);
-const obispo_n_2 = new Obispo(0, 5);
-const rey_n_1 = new Rey(0, 4);
-const reina_n_1 = new Reina(0, 3);
-const peon_n_1 = new Peon(1, 0);
-const peon_n_2 = new Peon(1, 1);
-const peon_n_3 = new Peon(1, 2);
-const peon_n_4 = new Peon(1, 3);
-const peon_n_5 = new Peon(1, 4);
-const peon_n_6 = new Peon(1, 5);
-const peon_n_7 = new Peon(1, 6);
-const peon_n_8 = new Peon(1, 7);
+const torre_n_1 = new Torre(0, 0, "torre_n_1", "n_torre.png");
+const torre_n_2 = new Torre(0, 7, "torre_n_2", "n_torre.png");
+const caballo_n_1 = new Caballo(0, 1, "caballo_n_1", "n_caballo.png");
+const caballo_n_2 = new Caballo(0, 6, "caballo_n_2", "n_caballo.png");
+const obispo_n_1 = new Obispo(0, 2, "obispo_n_1", "n_obispo.png");
+const obispo_n_2 = new Obispo(0, 5, "obispo_n_2", "n_obispo.png");
+const rey_n = new Rey(0, 4, "rey_n", "n_rey.png");
+const reina_n = new Reina(0, 3, "reina_n", "n_reina.png");
+const peon_n_1 = new Peon(1, 0, "peon_n_1", "n_peon.png");
+const peon_n_2 = new Peon(1, 1, "peon_n_2", "n_peon.png");
+const peon_n_3 = new Peon(1, 2, "peon_n_3", "n_peon.png");
+const peon_n_4 = new Peon(1, 3, "peon_n_4", "n_peon.png");
+const peon_n_5 = new Peon(1, 4, "peon_n_5", "n_peon.png");
+const peon_n_6 = new Peon(1, 5, "peon_n_6", "n_peon.png");
+const peon_n_7 = new Peon(1, 6, "peon_n_7", "n_peon.png");
+const peon_n_8 = new Peon(1, 7, "peon_n_8", "n_peon.png");
 
-const peon_b_1 = new Peon(6, 0);
-const peon_b_2 = new Peon(6, 1);
-const peon_b_3 = new Peon(6, 2);
-const peon_b_4 = new Peon(6, 3);
-const peon_b_5 = new Peon(6, 4);
-const peon_b_6 = new Peon(6, 5);
-const peon_b_7 = new Peon(6, 6);
-const peon_b_8 = new Peon(6, 7);
-const torre_b_1 = new Torre(7, 0);
-const torre_b_2 = new Torre(7, 7);
-const caballo_b_1 = new Caballo(7, 1);
-const caballo_b_2 = new Caballo(7, 6);
-const obispo_b_1 = new Obispo(7, 2);
-const obispo_b_2 = new Obispo(7, 5);
-const rey_b_1 = new Rey(7, 4);
-const reina_b_1 = new Reina(7, 3);
+const peon_b_1 = new Peon(6, 0, "peon_b_1", "b_peon.png");
+const peon_b_2 = new Peon(6, 1, "peon_b_2", "b_peon.png");
+const peon_b_3 = new Peon(6, 2, "peon_b_3", "b_peon.png");
+const peon_b_4 = new Peon(6, 3, "peon_b_4", "b_peon.png");
+const peon_b_5 = new Peon(6, 4, "peon_b_5", "b_peon.png");
+const peon_b_6 = new Peon(6, 5, "peon_b_6", "b_peon.png");
+const peon_b_7 = new Peon(6, 6, "peon_b_7", "b_peon.png");
+const peon_b_8 = new Peon(6, 7, "peon_b_8", "b_peon.png");
+const torre_b_1 = new Torre(7, 0, "torre_b_1", "b_torre.png");
+const torre_b_2 = new Torre(7, 7, "torre_b_2", "b_torre.png");
+const caballo_b_1 = new Caballo(7, 1, "caballo_b_1", "b_caballo.png");
+const caballo_b_2 = new Caballo(7, 6, "caballo_b_2", "b_caballo.png");
+const obispo_b_1 = new Obispo(7, 2, "obispo_b_1", "b_obispo.png");
+const obispo_b_2 = new Obispo(7, 5, "obispo_b_2", "b_obispo.png");
+const rey_b = new Rey(7, 4, "rey_b", "b_rey.png");
+const reina_b = new Reina(7, 3, "reina_b", "b_reina.png");
 
 const pieces = [];
 pieces.push(torre_n_1);
 pieces.push(caballo_n_1);
 pieces.push(obispo_n_1);
-pieces.push(reina_n_1);
-pieces.push(rey_n_1);
+pieces.push(reina_n);
+pieces.push(rey_n);
 pieces.push(obispo_n_2);
 pieces.push(caballo_n_2);
 pieces.push(torre_n_2);
@@ -114,6 +126,23 @@ pieces.push(peon_n_5);
 pieces.push(peon_n_6);
 pieces.push(peon_n_7);
 pieces.push(peon_n_8);
+
+pieces.push(peon_b_1);
+pieces.push(peon_b_2);
+pieces.push(peon_b_3);
+pieces.push(peon_b_4);
+pieces.push(peon_b_5);
+pieces.push(peon_b_6);
+pieces.push(peon_b_7);
+pieces.push(peon_b_8);
+pieces.push(torre_b_1);
+pieces.push(caballo_b_1);
+pieces.push(obispo_b_1);
+pieces.push(reina_b);
+pieces.push(rey_b);
+pieces.push(obispo_b_2);
+pieces.push(caballo_b_2);
+pieces.push(torre_b_2);
 
 let peon_;
 console.log(pieces.findIndex((p, i) => p === peon_n_5));
