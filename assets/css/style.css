@@ -1,0 +1,52 @@
+body {
+  background-color: lightgray;
+  margin: 0;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  justify-content: center;
+  align-items: center;
+}
+
+.board {
+  width: 600px;
+  height: 600px;
+  background-color: white;
+  /* border: 2px solid blue; */
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  /* border: 1px solid black; */
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+}
+
+.column {
+  /* border: 1px solid black; */
+  flex-grow: 1;
+  position: relative;
+}
+
+.column img {
+  position: absolute;
+  width: 60%; /* Establece un ancho del 100% para las imágenes */
+  height: 60%; /* Establece una altura del 100% para las imágenes */
+  margin-top: 20%;
+  margin-left: 20%;
+}
+
+.click {
+  box-shadow: 0 3px 4px 0 #dbedf3;
+  opacity: 0.5;
+  background-color: bisque;
+}
+
+/* .column {
+  box-shadow: 0 3px 4px 0 #dbedf3;
+} */
