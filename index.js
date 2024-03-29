@@ -5,12 +5,28 @@ class Piece {
   _column;
   _name;
   _dir_img;
+  _movements;
 
   constructor(row, column, name, dir_img) {
     this._row = row;
     this._column = column;
     this._name = name;
     this._dir_img = `./assets/img/${dir_img}.png`;
+    this._movements = [];
+  }
+
+  move(board) {
+    clearBoard();
+    this.clearMovements();
+    board[this._row][this._column].classList.add("click");
+  }
+
+  clearMovements() {
+    this._movements = [];
+  }
+
+  get movements() {
+    return this._movements;
   }
 
   set row(row) {
@@ -38,9 +54,48 @@ class Piece {
   }
 }
 
-class Peon extends Piece {
+class PeonB extends Piece {
   constructor(row, column, _name, _dir_img) {
     super(row, column, _name, _dir_img);
+  }
+
+  move(board) {
+    super.move(board);
+  }
+}
+
+class PeonN extends Piece {
+  constructor(row, column, _name, _dir_img) {
+    super(row, column, _name, _dir_img);
+  }
+
+  #checkCapture(board) {
+    if (checkMov(this.row + 1, this.column + 1, "n")) {
+      this.movements.push({ row: this.row + 1, column: this.column + 1 });
+    }
+
+    if (checkMov(this.row + 1, this.column - 1, "n")) {
+      this.movements.push({ row: this.row + 1, column: this.column - 1 });
+    }
+  }
+
+  move(board) {
+    super.move(board);
+    this.#checkCapture(board);
+
+    //Highlight Possible Movements
+    if (checkPeonMov(this.row + 1, this.column)) {
+      this.movements.push({ row: this.row + 1, column: this.column });
+
+      if (this.row === 1) {
+        if (checkPeonMov(this.row + 2, this.column)) {
+          this.movements.push({ row: this.row + 2, column: this.column });
+        }
+      }
+    }
+    if (this.movements.length > 0) {
+      highlightMov(board, this);
+    }
   }
 }
 
@@ -83,23 +138,23 @@ const obispo_n_1 = new Obispo(0, 2, "obispo_n_1", "n_obispo");
 const obispo_n_2 = new Obispo(0, 5, "obispo_n_2", "n_obispo");
 const rey_n = new Rey(0, 4, "rey_n", "n_rey");
 const reina_n = new Reina(0, 3, "reina_n", "n_reina");
-const peon_n_1 = new Peon(1, 0, "peon_n_1", "n_peon");
-const peon_n_2 = new Peon(1, 1, "peon_n_2", "n_peon");
-const peon_n_3 = new Peon(1, 2, "peon_n_3", "n_peon");
-const peon_n_4 = new Peon(1, 3, "peon_n_4", "n_peon");
-const peon_n_5 = new Peon(1, 4, "peon_n_5", "n_peon");
-const peon_n_6 = new Peon(1, 5, "peon_n_6", "n_peon");
-const peon_n_7 = new Peon(1, 6, "peon_n_7", "n_peon");
-const peon_n_8 = new Peon(1, 7, "peon_n_8", "n_peon");
+const peon_n_1 = new PeonN(1, 0, "peon_n_1", "n_peon");
+const peon_n_2 = new PeonN(1, 1, "peon_n_2", "n_peon");
+const peon_n_3 = new PeonN(1, 2, "peon_n_3", "n_peon");
+const peon_n_4 = new PeonN(1, 3, "peon_n_4", "n_peon");
+const peon_n_5 = new PeonN(1, 4, "peon_n_5", "n_peon");
+const peon_n_6 = new PeonN(1, 5, "peon_n_6", "n_peon");
+const peon_n_7 = new PeonN(1, 6, "peon_n_7", "n_peon");
+const peon_n_8 = new PeonN(1, 7, "peon_n_8", "n_peon");
 
-const peon_b_1 = new Peon(6, 0, "peon_b_1", "b_peon");
-const peon_b_2 = new Peon(6, 1, "peon_b_2", "b_peon");
-const peon_b_3 = new Peon(6, 2, "peon_b_3", "b_peon");
-const peon_b_4 = new Peon(6, 3, "peon_b_4", "b_peon");
-const peon_b_5 = new Peon(6, 4, "peon_b_5", "b_peon");
-const peon_b_6 = new Peon(6, 5, "peon_b_6", "b_peon");
-const peon_b_7 = new Peon(6, 6, "peon_b_7", "b_peon");
-const peon_b_8 = new Peon(6, 7, "peon_b_8", "b_peon");
+const peon_b_1 = new PeonB(6, 0, "peon_b_1", "b_peon");
+const peon_b_2 = new PeonB(6, 1, "peon_b_2", "b_peon");
+const peon_b_3 = new PeonB(6, 2, "peon_b_3", "b_peon");
+const peon_b_4 = new PeonB(6, 3, "peon_b_4", "b_peon");
+const peon_b_5 = new PeonB(6, 4, "peon_b_5", "b_peon");
+const peon_b_6 = new PeonB(6, 5, "peon_b_6", "b_peon");
+const peon_b_7 = new PeonB(6, 6, "peon_b_7", "b_peon");
+const peon_b_8 = new PeonB(6, 7, "peon_b_8", "b_peon");
 const torre_b_1 = new Torre(7, 0, "torre_b_1", "b_torre");
 const torre_b_2 = new Torre(7, 7, "torre_b_2", "b_torre");
 const caballo_b_1 = new Caballo(7, 1, "caballo_b_1", "b_caballo");
@@ -144,6 +199,7 @@ pieces.push(obispo_b_2);
 pieces.push(caballo_b_2);
 pieces.push(torre_b_2);
 
+let pieceMoving = false;
 let board = [];
 let rows = document.querySelectorAll(".row");
 rows.forEach((row) => {
@@ -154,89 +210,116 @@ rows.forEach((row) => {
   board.push(tempRow);
 });
 
+//NOTE:
 const colorBoard = (board, color) => {
   for (let i = 0; i < board.length; i++) {
     for (let j = 0; j < board.length; j++) {
       if ((i + j) % 2 != 0) board[i][j].style.background = color;
-      // board[i][j].firstElementChild?.classList.add(`${i}_row_${j}_column`);
-      // board[i][j].firstElementChild?.classList.add("ocupated");
+      //Adding the position in the matriz
+      board[i][j].classList.add(`posBoard_${i}_${j}`);
     }
   }
 };
 
+//NOTE:
 const setPieces = (board, pieces) => {
   pieces.forEach((piece) => {
     const img = document.createElement("img");
     img.src = `${piece._dir_img}`;
+    img.alt = `${piece._name.split("_")[0]}`;
     img.classList.add(`${piece._name}`);
     const div = board[piece.row][piece.column];
     div.appendChild(img);
   });
+};
+// const img = document.createElement("img");
+// img.src = `./assets/img/b_peon.png`;
+// img.alt = `$peon`;
+// img.classList.add(`peon_b_4`);
+// const div = board[3][3];
+// div.appendChild(img);
+
+//NOTE:
+const checkMov = (row, col, color) => {
+  if (board[row][col].hasChildNodes()) {
+    // check de color of the piece
+    const pieceColor =
+      board[row][col].firstElementChild.classList.value.split("_")[1];
+    return pieceColor === color ? false : true;
+  }
+  return false;
+};
+
+const checkPeonMov = (row, col) => !board[row][col].hasChildNodes();
+
+//NOTE:
+const highlightMov = (board, piece) => {
+  piece.movements.forEach((mov) => {
+    const pieceMov = board[mov.row][mov.column];
+    pieceMov.classList.add("click");
+    pieceMov.classList.add(`posMove_${piece.row}_${piece.column}`);
+    pieceMov.classList.add(`${piece.name}`);
+  });
+};
+
+//NOTE:
+const clearBoard = function () {
+  [...document.querySelectorAll(".column")].forEach((col) => {
+    const className = col.className;
+    //Remove all the classes except "column" and the position in the matriz
+    col.className = "";
+    col.classList.add(className.split(" ")[0]);
+    col.classList.add(className.split(" ")[1]);
+  });
+};
+
+//NOTE:
+const findPiece = (pieces, name) => {
+  const piece = pieces.find((piece) => piece.name === name);
+  return piece;
 };
 
 // Coloring the board and setting the pieces
 colorBoard(board, "#789461");
 setPieces(board, pieces);
 
+//REVIEW:
 [...document.querySelectorAll(".column")].forEach((col) => {
   col.addEventListener("click", function (e) {
-    switch (this.firstElementChild?.alt) {
-      case "peon":
-        movPeon(this);
-        break;
-      default:
-        console.log("Lo lamentamos, por el momento no disponemos.");
-    }
-    // console.log(`Es ${this.firstElementChild?.classList.contains("ocupated")}`);
+    if (this.hasChildNodes() && !this.classList.contains("click")) {
+      //Find the clicked piece in the array of pieces
+      const piece = findPiece(
+        pieces,
+        this.firstElementChild.classList.value.split(" ")[0]
+      );
+      piece.move(board);
+    } else {
+      if (this.classList.contains("click")) {
+        //Move piece to the selected box
+        const [text1, row, column] = this.classList.value
+          .split(" ")
+          [this.classList.length - 2].split("_");
 
-    //this.classList.add("click");
-    // console.log(this.firstElementChild?.alt);
-    // console.log(this.firstElementChild?.classList.value);
+        //Check if there is a contrary piece in that position
+        if (this.hasChildNodes()) {
+          this.removeChild(this.firstElementChild);
+        }
+
+        this.appendChild(board[row][column].firstElementChild);
+
+        //Update new piece position
+        const piece = findPiece(
+          pieces,
+          this.className.split(" ")[this.classList.length - 1]
+        );
+        const [text2, newRow, newColumn] = this.classList.value
+          .split(" ")[1]
+          .split("_");
+        piece.row = Number(newRow);
+        piece.column = Number(newColumn);
+
+        clearBoard();
+      }
+    }
   });
 });
-//  addEventListener("click", function (event) {
-//   console.log(event);
-//   console.log(event.tarjet);
-// });
-
-const movPiece = (piece, row, column) => {};
-
-const movPeon = (peon) => {
-  const colorPeon = peon.firstElementChild.classList.value.split("_")[0];
-  const locationClass = peon.firstElementChild.classList.value.split(" ")[1];
-  const locationRow = locationClass.split("_")[0];
-  const locationColumn = locationClass.split("_")[2];
-
-  //Highlight Possible Movements
-  peon.classList.add("click");
-  if (colorPeon === "b") {
-    if (locationRow === "6") {
-      console.log("ey");
-      board[locationRow - 2][locationColumn].classList.add("click");
-      board[locationRow - 2][locationColumn].addEventListener(
-        "click",
-        function () {
-          console.log("presionado");
-          board[locationRow - 2][locationColumn].appendChild(
-            board[locationRow][locationColumn].firstElementChild
-          );
-        }
-      );
-    }
-    board[locationRow - 1][locationColumn].classList.add("click");
-    board[locationRow - 1][locationColumn].addEventListener(
-      "click",
-      function () {
-        console.log("presionado");
-        board[locationRow - 1][locationColumn].appendChild(
-          board[locationRow][locationColumn].firstElementChild
-        );
-      }
-    );
-  }
-
-  console.log(colorPeon);
-  console.log(locationClass);
-  console.log(locationRow);
-  console.log(locationColumn);
-};
