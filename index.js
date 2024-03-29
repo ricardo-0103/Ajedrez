@@ -54,48 +54,69 @@ class Piece {
   }
 }
 
-class PeonB extends Piece {
+class Peon extends Piece {
   constructor(row, column, _name, _dir_img) {
     super(row, column, _name, _dir_img);
   }
 
-  move(board) {
-    super.move(board);
-  }
-}
-
-class PeonN extends Piece {
-  constructor(row, column, _name, _dir_img) {
-    super(row, column, _name, _dir_img);
-  }
-
-  #checkCapture(board) {
-    if (checkMov(this.row + 1, this.column + 1, "n")) {
-      this.movements.push({ row: this.row + 1, column: this.column + 1 });
+  checkCapture(mov, color) {
+    if (checkMov(this.row + mov, this.column + mov, color)) {
+      this.movements.push({ row: this.row + mov, column: this.column + mov });
     }
 
-    if (checkMov(this.row + 1, this.column - 1, "n")) {
-      this.movements.push({ row: this.row + 1, column: this.column - 1 });
+    if (checkMov(this.row + mov, this.column - mov, color)) {
+      this.movements.push({ row: this.row + mov, column: this.column - mov });
     }
   }
 
-  move(board) {
+  move(board, mov, color) {
     super.move(board);
-    this.#checkCapture(board);
+    this.checkCapture(mov, color);
 
     //Highlight Possible Movements
-    if (checkPeonMov(this.row + 1, this.column)) {
-      this.movements.push({ row: this.row + 1, column: this.column });
+    if (checkPeonMov(this.row + mov, this.column)) {
+      this.movements.push({ row: this.row + mov, column: this.column });
 
-      if (this.row === 1) {
-        if (checkPeonMov(this.row + 2, this.column)) {
-          this.movements.push({ row: this.row + 2, column: this.column });
+      if (
+        (this.row === 1 && color === "n") ||
+        (this.row === 6 && color === "b")
+      ) {
+        if (checkPeonMov(this.row + mov * 2, this.column)) {
+          this.movements.push({ row: this.row + mov * 2, column: this.column });
         }
       }
     }
     if (this.movements.length > 0) {
       highlightMov(board, this);
     }
+  }
+}
+
+class PeonB extends Peon {
+  constructor(row, column, _name, _dir_img) {
+    super(row, column, _name, _dir_img);
+  }
+
+  checkCapture(mov, color) {
+    super.checkCapture(mov, color);
+  }
+
+  move(board) {
+    super.move(board, -1, "b");
+  }
+}
+
+class PeonN extends Peon {
+  constructor(row, column, _name, _dir_img) {
+    super(row, column, _name, _dir_img);
+  }
+
+  checkCapture(mov, color) {
+    super.checkCapture(mov, color);
+  }
+
+  move(board) {
+    super.move(board, 1, "n");
   }
 }
 
@@ -241,6 +262,8 @@ const setPieces = (board, pieces) => {
 
 //NOTE:
 const checkMov = (row, col, color) => {
+  // check if the position is within the limits of the board
+  if (row < 0 || row > 7 || col < 0 || col > 7) return false;
   if (board[row][col].hasChildNodes()) {
     // check de color of the piece
     const pieceColor =
