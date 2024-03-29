@@ -59,19 +59,19 @@ class Peon extends Piece {
     super(row, column, _name, _dir_img);
   }
 
-  checkCapture(mov, color) {
-    if (checkMov(this.row + mov, this.column + mov, color)) {
+  checkCapture(mov) {
+    if (checkMov(this.row + mov, this.column + mov, this.name)) {
       this.movements.push({ row: this.row + mov, column: this.column + mov });
     }
 
-    if (checkMov(this.row + mov, this.column - mov, color)) {
+    if (checkMov(this.row + mov, this.column - mov, this.name)) {
       this.movements.push({ row: this.row + mov, column: this.column - mov });
     }
   }
 
   move(board, mov, color) {
     super.move(board);
-    this.checkCapture(mov, color);
+    this.checkCapture(mov);
 
     //Highlight Possible Movements
     if (checkPeonMov(this.row + mov, this.column)) {
@@ -86,9 +86,7 @@ class Peon extends Piece {
         }
       }
     }
-    if (this.movements.length > 0) {
-      highlightMov(board, this);
-    }
+    highlightMov(board, this);
   }
 }
 
@@ -97,8 +95,8 @@ class PeonB extends Peon {
     super(row, column, _name, _dir_img);
   }
 
-  checkCapture(mov, color) {
-    super.checkCapture(mov, color);
+  checkCapture(mov) {
+    super.checkCapture(mov);
   }
 
   move(board) {
@@ -111,8 +109,8 @@ class PeonN extends Peon {
     super(row, column, _name, _dir_img);
   }
 
-  checkCapture(mov, color) {
-    super.checkCapture(mov, color);
+  checkCapture(mov) {
+    super.checkCapture(mov);
   }
 
   move(board) {
@@ -130,11 +128,58 @@ class Obispo extends Piece {
   constructor(row, column, _name, _dir_img) {
     super(row, column, _name, _dir_img);
   }
+
+  move(board) {
+    super.move(board);
+
+    let i = 1;
+    let j = 1;
+    while (checkMov(this.row + i, this.column + i, this.name)) {
+      console.log(checkMov(this.row + i, this.column + i, this.name));
+      this.movements.push({ row: this.row + i, column: this.column + i });
+      i++;
+      j++;
+    }
+
+    highlightMov(board, this);
+  }
 }
 
 class Caballo extends Piece {
   constructor(row, column, _name, _dir_img) {
     super(row, column, _name, _dir_img);
+  }
+
+  move(board) {
+    super.move(board);
+
+    if (checkMov(this.row + 2, this.column + 1, this.name)) {
+      this.movements.push({ row: this.row + 2, column: this.column + 1 });
+    }
+    if (checkMov(this.row + 2, this.column - 1, this.name)) {
+      this.movements.push({ row: this.row + 2, column: this.column - 1 });
+    }
+    if (checkMov(this.row - 2, this.column - 1, this.name)) {
+      this.movements.push({ row: this.row - 2, column: this.column - 1 });
+    }
+    if (checkMov(this.row - 2, this.column + 1, this.name)) {
+      this.movements.push({ row: this.row - 2, column: this.column + 1 });
+    }
+
+    if (checkMov(this.row + 1, this.column + 2, this.name)) {
+      this.movements.push({ row: this.row + 1, column: this.column + 2 });
+    }
+    if (checkMov(this.row + 1, this.column - 2, this.name)) {
+      this.movements.push({ row: this.row + 1, column: this.column - 2 });
+    }
+    if (checkMov(this.row - 1, this.column - 2, this.name)) {
+      this.movements.push({ row: this.row - 1, column: this.column - 2 });
+    }
+    if (checkMov(this.row - 1, this.column + 2, this.name)) {
+      this.movements.push({ row: this.row - 1, column: this.column + 2 });
+    }
+
+    highlightMov(board, this);
   }
 }
 
@@ -261,14 +306,20 @@ const setPieces = (board, pieces) => {
 // div.appendChild(img);
 
 //NOTE:
-const checkMov = (row, col, color) => {
+const checkMov = (row, col, pieceName) => {
+  const color = pieceName.split("_")[1];
+  const typePiece = pieceName.split("_")[0];
   // check if the position is within the limits of the board
   if (row < 0 || row > 7 || col < 0 || col > 7) return false;
+
   if (board[row][col].hasChildNodes()) {
     // check de color of the piece
     const pieceColor =
       board[row][col].firstElementChild.classList.value.split("_")[1];
+    console.log(pieceColor);
     return pieceColor === color ? false : true;
+  } else if (typePiece !== "peon") {
+    return true;
   }
   return false;
 };
@@ -277,12 +328,15 @@ const checkPeonMov = (row, col) => !board[row][col].hasChildNodes();
 
 //NOTE:
 const highlightMov = (board, piece) => {
-  piece.movements.forEach((mov) => {
-    const pieceMov = board[mov.row][mov.column];
-    pieceMov.classList.add("click");
-    pieceMov.classList.add(`posMove_${piece.row}_${piece.column}`);
-    pieceMov.classList.add(`${piece.name}`);
-  });
+  if (piece.movements.length > 0) {
+    piece.movements.forEach((mov) => {
+      const pieceMov = board[mov.row][mov.column];
+      pieceMov.classList.add("click");
+      //Adding the location of the selected Piece and its name
+      pieceMov.classList.add(`locPiece_${piece.row}_${piece.column}`);
+      pieceMov.classList.add(`${piece.name}`);
+    });
+  }
 };
 
 //NOTE:
@@ -321,7 +375,7 @@ setPieces(board, pieces);
         //Move piece to the selected box
         const [text1, row, column] = this.classList.value
           .split(" ")
-          [this.classList.length - 2].split("_");
+          [this.classList.length - 2].split("_"); //location of the piece
 
         //Check if there is a contrary piece in that position
         if (this.hasChildNodes()) {
@@ -333,10 +387,10 @@ setPieces(board, pieces);
         //Update new piece position
         const piece = findPiece(
           pieces,
-          this.className.split(" ")[this.classList.length - 1]
+          this.className.split(" ")[this.classList.length - 1] //selecting the name
         );
         const [text2, newRow, newColumn] = this.classList.value
-          .split(" ")[1]
+          .split(" ")[1] //selecting the position on the board
           .split("_");
         piece.row = Number(newRow);
         piece.column = Number(newColumn);
