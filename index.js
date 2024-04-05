@@ -23,6 +23,18 @@ class Piece {
     board[this._row][this._column].classList.add("click");
   }
 
+  moveInOneDirection(contRow, contCol, repeat) {
+    let movRow = this.row + contRow;
+    let movCol = this.column + contCol;
+    while (checkMov(movRow, movCol, this.name)) {
+      this.movements.push({ row: movRow, column: movCol });
+      if (board[movRow][movCol].hasChildNodes()) break;
+      if (repeat) break;
+      movRow += contRow;
+      movCol += contCol;
+    }
+  }
+
   clearMovements() {
     this._movements = [];
   }
@@ -129,6 +141,17 @@ class Torre extends Piece {
   constructor(row, column, _name, _dir_img) {
     super(row, column, _name, _dir_img);
   }
+
+  move(board) {
+    super.move(board);
+
+    super.moveInOneDirection(1, 0, false);
+    super.moveInOneDirection(-1, 0, false);
+    super.moveInOneDirection(0, -1, false);
+    super.moveInOneDirection(0, 1, false);
+
+    highlightMov(board, this);
+  }
 }
 
 class Obispo extends Piece {
@@ -139,12 +162,10 @@ class Obispo extends Piece {
   move(board) {
     super.move(board);
 
-    let cont = 1;
-    while (checkMov(this.row + cont, this.column + cont, this.name)) {
-      this.movements.push({ row: this.row + cont, column: this.column + cont });
-      if (board[this.row + cont][this.column + cont].hasChildNodes()) break;
-      cont++;
-    }
+    super.moveInOneDirection(1, 1, false);
+    super.moveInOneDirection(-1, -1, false);
+    super.moveInOneDirection(1, -1, false);
+    super.moveInOneDirection(-1, 1, false);
 
     highlightMov(board, this);
   }
@@ -158,31 +179,14 @@ class Caballo extends Piece {
   move(board) {
     super.move(board);
 
-    if (checkMov(this.row + 2, this.column + 1, this.name)) {
-      this.movements.push({ row: this.row + 2, column: this.column + 1 });
-    }
-    if (checkMov(this.row + 2, this.column - 1, this.name)) {
-      this.movements.push({ row: this.row + 2, column: this.column - 1 });
-    }
-    if (checkMov(this.row - 2, this.column - 1, this.name)) {
-      this.movements.push({ row: this.row - 2, column: this.column - 1 });
-    }
-    if (checkMov(this.row - 2, this.column + 1, this.name)) {
-      this.movements.push({ row: this.row - 2, column: this.column + 1 });
-    }
-
-    if (checkMov(this.row + 1, this.column + 2, this.name)) {
-      this.movements.push({ row: this.row + 1, column: this.column + 2 });
-    }
-    if (checkMov(this.row + 1, this.column - 2, this.name)) {
-      this.movements.push({ row: this.row + 1, column: this.column - 2 });
-    }
-    if (checkMov(this.row - 1, this.column - 2, this.name)) {
-      this.movements.push({ row: this.row - 1, column: this.column - 2 });
-    }
-    if (checkMov(this.row - 1, this.column + 2, this.name)) {
-      this.movements.push({ row: this.row - 1, column: this.column + 2 });
-    }
+    super.moveInOneDirection(2, 1, true);
+    super.moveInOneDirection(2, -1, true);
+    super.moveInOneDirection(-2, -1, true);
+    super.moveInOneDirection(-2, 1, true);
+    super.moveInOneDirection(1, 2, true);
+    super.moveInOneDirection(1, -2, true);
+    super.moveInOneDirection(-1, -2, true);
+    super.moveInOneDirection(-1, 2, true);
 
     highlightMov(board, this);
   }
@@ -192,11 +196,41 @@ class Rey extends Piece {
   constructor(row, column, _name, _dir_img) {
     super(row, column, _name, _dir_img);
   }
+
+  move(board) {
+    super.move(board);
+
+    super.moveInOneDirection(1, 0, true);
+    super.moveInOneDirection(-1, 0, true);
+    super.moveInOneDirection(0, -1, true);
+    super.moveInOneDirection(0, 1, true);
+    super.moveInOneDirection(1, 1, true);
+    super.moveInOneDirection(-1, -1, true);
+    super.moveInOneDirection(1, -1, true);
+    super.moveInOneDirection(-1, 1, true);
+
+    highlightMov(board, this);
+  }
 }
 
 class Reina extends Piece {
   constructor(row, column, _name, _dir_img) {
     super(row, column, _name, _dir_img);
+  }
+
+  move(board) {
+    super.move(board);
+
+    super.moveInOneDirection(1, 0, false);
+    super.moveInOneDirection(-1, 0, false);
+    super.moveInOneDirection(0, -1, false);
+    super.moveInOneDirection(0, 1, false);
+    super.moveInOneDirection(1, 1, false);
+    super.moveInOneDirection(-1, -1, false);
+    super.moveInOneDirection(1, -1, false);
+    super.moveInOneDirection(-1, 1, false);
+
+    highlightMov(board, this);
   }
 }
 
@@ -380,11 +414,13 @@ setPieces(board, pieces);
         pieces,
         this.firstElementChild.classList.value.split(" ")[0]
       );
+      selectedPiece = piece;
+      piece.move(board);
       //check if is playing theuser in turn
-      if (checkTurn(piece)) {
-        selectedPiece = piece;
-        piece.move(board);
-      }
+      // if (checkTurn(piece)) {
+      //   selectedPiece = piece;
+      //   piece.move(board);
+      // }
     } else {
       const userMove = this?.firstElementChild?.className;
       //Check the user dosen't click the same piece or one not posible movement
