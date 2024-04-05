@@ -6,6 +6,7 @@ class Piece {
   _name;
   _dir_img;
   _movements;
+  _color;
 
   constructor(row, column, name, dir_img) {
     this._row = row;
@@ -13,6 +14,7 @@ class Piece {
     this._name = name;
     this._dir_img = `./assets/img/${dir_img}.png`;
     this._movements = [];
+    this._color = this.name.split("_")[1];
   }
 
   move(board) {
@@ -52,6 +54,10 @@ class Piece {
   get dir_img() {
     return this._dir_img;
   }
+
+  get color() {
+    return this._color;
+  }
 }
 
 class Peon extends Piece {
@@ -77,6 +83,7 @@ class Peon extends Piece {
     if (checkPeonMov(this.row + mov, this.column)) {
       this.movements.push({ row: this.row + mov, column: this.column });
 
+      //check double movement
       if (
         (this.row === 1 && color === "n") ||
         (this.row === 6 && color === "b")
@@ -132,13 +139,11 @@ class Obispo extends Piece {
   move(board) {
     super.move(board);
 
-    let i = 1;
-    let j = 1;
-    while (checkMov(this.row + i, this.column + i, this.name)) {
-      console.log(checkMov(this.row + i, this.column + i, this.name));
-      this.movements.push({ row: this.row + i, column: this.column + i });
-      i++;
-      j++;
+    let cont = 1;
+    while (checkMov(this.row + cont, this.column + cont, this.name)) {
+      this.movements.push({ row: this.row + cont, column: this.column + cont });
+      if (board[this.row + cont][this.column + cont].hasChildNodes()) break;
+      cont++;
     }
 
     highlightMov(board, this);
@@ -266,6 +271,8 @@ pieces.push(caballo_b_2);
 pieces.push(torre_b_2);
 
 let pieceMoving = false;
+let selectedPiece;
+let playerTurn = "b";
 let board = [];
 let rows = document.querySelectorAll(".row");
 rows.forEach((row) => {
@@ -316,7 +323,6 @@ const checkMov = (row, col, pieceName) => {
     // check de color of the piece
     const pieceColor =
       board[row][col].firstElementChild.classList.value.split("_")[1];
-    console.log(pieceColor);
     return pieceColor === color ? false : true;
   } else if (typePiece !== "peon") {
     return true;
@@ -332,9 +338,6 @@ const highlightMov = (board, piece) => {
     piece.movements.forEach((mov) => {
       const pieceMov = board[mov.row][mov.column];
       pieceMov.classList.add("click");
-      //Adding the location of the selected Piece and its name
-      pieceMov.classList.add(`locPiece_${piece.row}_${piece.column}`);
-      pieceMov.classList.add(`${piece.name}`);
     });
   }
 };
@@ -356,6 +359,14 @@ const findPiece = (pieces, name) => {
   return piece;
 };
 
+//NOTE:
+const checkTurn = (piece) => (playerTurn === piece.color ? true : false);
+
+//NOTE:
+const changeTurn = () => {
+  playerTurn = playerTurn === "b" ? "n" : "b";
+};
+
 // Coloring the board and setting the pieces
 colorBoard(board, "#789461");
 setPieces(board, pieces);
@@ -369,33 +380,34 @@ setPieces(board, pieces);
         pieces,
         this.firstElementChild.classList.value.split(" ")[0]
       );
-      piece.move(board);
+      //check if is playing theuser in turn
+      if (checkTurn(piece)) {
+        selectedPiece = piece;
+        piece.move(board);
+      }
     } else {
-      if (this.classList.contains("click")) {
-        //Move piece to the selected box
-        const [text1, row, column] = this.classList.value
-          .split(" ")
-          [this.classList.length - 2].split("_"); //location of the piece
-
-        //Check if there is a contrary piece in that position
+      const userMove = this?.firstElementChild?.className;
+      //Check the user dosen't click the same piece or one not posible movement
+      if (this.classList.contains("click") && userMove !== selectedPiece.name) {
+        //Check if there is a contrary piece in that position, and remove the piece
         if (this.hasChildNodes()) {
           this.removeChild(this.firstElementChild);
         }
 
-        this.appendChild(board[row][column].firstElementChild);
+        //Move the piece to the selected box
+        this.appendChild(
+          board[selectedPiece.row][selectedPiece.column].firstElementChild
+        );
 
         //Update new piece position
-        const piece = findPiece(
-          pieces,
-          this.className.split(" ")[this.classList.length - 1] //selecting the name
-        );
         const [text2, newRow, newColumn] = this.classList.value
           .split(" ")[1] //selecting the position on the board
           .split("_");
-        piece.row = Number(newRow);
-        piece.column = Number(newColumn);
+        selectedPiece.row = Number(newRow);
+        selectedPiece.column = Number(newColumn);
 
         clearBoard();
+        changeTurn();
       }
     }
   });
