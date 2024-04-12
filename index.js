@@ -23,13 +23,13 @@ class Piece {
     board[this._row][this._column].classList.add("click");
   }
 
-  moveInOneDirection(contRow, contCol, repeat) {
+  moveInOneDirection(contRow, contCol, notRepeat) {
     let movRow = this.row + contRow;
     let movCol = this.column + contCol;
     while (checkMov(movRow, movCol, this.name)) {
       this.movements.push({ row: movRow, column: movCol });
       if (board[movRow][movCol].hasChildNodes()) break;
-      if (repeat) break;
+      if (notRepeat) break;
       movRow += contRow;
       movCol += contCol;
     }
@@ -41,6 +41,10 @@ class Piece {
 
   get movements() {
     return this._movements;
+  }
+
+  set movements(movements) {
+    this._movements = movements;
   }
 
   set row(row) {
@@ -209,10 +213,30 @@ class Rey extends Piece {
     super.moveInOneDirection(1, -1, true);
     super.moveInOneDirection(-1, 1, true);
 
+    //  Eliminate moves that put a king adjacent to another
+    this.removeAdjacentKingMovements();
+
     highlightMov(board, this);
   }
-}
 
+  removeAdjacentKingMovements() {
+    // Get the coordinates of the other king
+    const otherKingRow = pieces.find(
+      (piece) => piece.name === `rey_${this.color === "b" ? "n" : "b"}`
+    ).row;
+    const otherKingColumn = pieces.find(
+      (piece) => piece.name === `rey_${this.color === "b" ? "n" : "b"}`
+    ).column;
+
+    // Eliminate moves that put a king adjacent to another
+    this.movements = this.movements.filter((movement) => {
+      return !(
+        Math.abs(movement.row - otherKingRow) <= 1 &&
+        Math.abs(movement.column - otherKingColumn) <= 1
+      );
+    });
+  }
+}
 class Reina extends Piece {
   constructor(row, column, _name, _dir_img) {
     super(row, column, _name, _dir_img);
@@ -355,6 +379,7 @@ const checkMov = (row, col, pieceName) => {
 
   if (board[row][col].hasChildNodes()) {
     // check de color of the piece
+    // if the piece in that position has the contrary colour, then it can be killed
     const pieceColor =
       board[row][col].firstElementChild.classList.value.split("_")[1];
     return pieceColor === color ? false : true;
@@ -401,6 +426,148 @@ const changeTurn = () => {
   playerTurn = playerTurn === "b" ? "n" : "b";
 };
 
+//REVIEW:
+function isJaque(color) {
+  // Encuentra la posición del rey del color especificado
+  const king = pieces.find((piece) => piece.name === `rey_${color}`);
+  const kingRow = king.row;
+  const kingColumn = king.column;
+
+  // Encuentra las piezas del otro color
+  const opponentPieces = pieces.filter((piece) => piece.color !== color);
+
+  // Verifica si alguna pieza del oponente puede moverse a la posición del rey
+  for (const opponentPiece of opponentPieces) {
+    opponentPiece.move(board);
+    clearBoard();
+    for (const movement of opponentPiece.movements) {
+      if (movement.row === kingRow && movement.column === kingColumn) {
+        board[movement.row][movement.column]?.classList?.add("jaque");
+        return true; // El rey está en jaque
+      }
+    }
+  }
+
+  return false; // El rey no está en jaque
+}
+
+//REVIEW:
+function checkForLegalMoves(kingColor) {
+  // Obtener todas las piezas del jugador actual
+  const currentPlayerPieces = pieces.filter(
+    (piece) => piece.color === kingColor
+  );
+  // Verificar si alguna de las piezas puede moverse para sacar al rey del jaque o bloquear la amenaza
+  for (const piece of currentPlayerPieces) {
+    piece.move(board);
+    clearBoard();
+    for (const movement of piece.movements) {
+      // Simulate the move to see if it gets the king out of jaque or blocks the threat
+      const tempRow = piece.row;
+      const tempColumn = piece.column;
+      piece.row = movement.row;
+      piece.column = movement.column;
+
+      let killPiece = false;
+      let pieceToDelete;
+      let deletedPieceIndex;
+      let imgDeletedPiece;
+      //Check if there is a contrary piece in that position, and remove the piece
+      if (board[piece.row][piece.column].hasChildNodes()) {
+        pieceToDelete = findPiece(
+          pieces,
+          board[piece.row][piece.column].firstElementChild.classList.value
+        );
+        deletedPieceIndex = pieces.indexOf(pieceToDelete);
+        pieces.splice(deletedPieceIndex, 1)[0];
+
+        // Delete the piece from the array of pieces and from the board
+        imgDeletedPiece = board[piece.row][piece.column].firstElementChild;
+        board[piece.row][piece.column].removeChild(
+          board[piece.row][piece.column].firstElementChild
+        );
+
+        // A piece was killed
+        killPiece = true;
+      }
+
+      //Move the piece to the selected box
+      board[piece.row][piece.column].appendChild(
+        board[tempRow][tempColumn].firstElementChild
+      );
+
+      if (!isJaque(kingColor)) {
+        // The movement put the king out of jaque
+
+        //Put everything as it was before
+        restorePosition(
+          board,
+          pieces,
+          tempRow,
+          tempColumn,
+          piece,
+          killPiece,
+          pieceToDelete,
+          imgDeletedPiece,
+          deletedPieceIndex
+        );
+
+        // board[tempRow][tempColumn].appendChild(
+        //   board[piece.row][piece.column].firstElementChild
+        // );
+
+        // if (killPiece) {
+        //   board[piece.row][piece.column].appendChild(imgDeletedPiece);
+        //   pieces.splice(deletedPieceIndex, 0, pieceToDelete);
+        // }
+
+        // piece.row = tempRow; // Restore the original position of the piece
+        // piece.column = tempColumn;
+        return true;
+      }
+
+      restorePosition(
+        board,
+        pieces,
+        tempRow,
+        tempColumn,
+        piece,
+        killPiece,
+        pieceToDelete,
+        imgDeletedPiece,
+        deletedPieceIndex
+      );
+    }
+  }
+
+  return false; // There are no moves available to remove the king from jaque or block the threat
+}
+
+//NOTE:
+const restorePosition = (
+  board,
+  pieces,
+  originalRow,
+  originalColumn,
+  pieceToRestore,
+  wasAPieceKilled,
+  pieceDeleted,
+  imgOfPieceDeleted,
+  deletedPieceIndex
+) => {
+  board[originalRow][originalColumn].appendChild(
+    board[pieceToRestore.row][pieceToRestore.column].firstElementChild
+  );
+
+  if (wasAPieceKilled) {
+    board[originalRow][originalColumn].appendChild(imgOfPieceDeleted);
+    pieces.splice(deletedPieceIndex, 0, pieceDeleted);
+  }
+
+  pieceToRestore.row = originalRow; // Restore the original position of the piece
+  pieceToRestore.column = originalColumn;
+};
+
 // Coloring the board and setting the pieces
 colorBoard(board, "#789461");
 setPieces(board, pieces);
@@ -416,7 +583,7 @@ setPieces(board, pieces);
       );
       selectedPiece = piece;
       piece.move(board);
-      //check if is playing theuser in turn
+      //check if the user in turn is playing
       // if (checkTurn(piece)) {
       //   selectedPiece = piece;
       //   piece.move(board);
@@ -427,6 +594,12 @@ setPieces(board, pieces);
       if (this.classList.contains("click") && userMove !== selectedPiece.name) {
         //Check if there is a contrary piece in that position, and remove the piece
         if (this.hasChildNodes()) {
+          // Delete the piece from the array of pieces
+          const pieceToDelete = findPiece(
+            pieces,
+            this.firstElementChild.classList.value
+          );
+          pieces.splice(pieces.indexOf(pieceToDelete), 1);
           this.removeChild(this.firstElementChild);
         }
 
@@ -441,6 +614,22 @@ setPieces(board, pieces);
           .split("_");
         selectedPiece.row = Number(newRow);
         selectedPiece.column = Number(newColumn);
+
+        // Check if the moved piece puts the opponent king in jaque
+        const opponentKingColor = selectedPiece.color === "b" ? "n" : "b";
+        if (isJaque(opponentKingColor)) {
+          console.log(`El rey ${opponentKingColor} está en jaque.`);
+
+          // Verificar si hay movimientos disponibles para sacar al rey del jaque o bloquear la amenaza
+          const isLegalMoveAvailable = checkForLegalMoves(opponentKingColor);
+
+          if (!isLegalMoveAvailable) {
+            console.log(
+              `Jaque mate. ¡El jugador ${selectedPiece.color} ha ganado!`
+            );
+            // Aquí puedes realizar cualquier acción adicional que necesites para el jaque mate
+          }
+        }
 
         clearBoard();
         changeTurn();
