@@ -20,7 +20,6 @@ class Piece {
   move(board) {
     clearBoard();
     this.clearMovements();
-    board[this._row][this._column].classList.add("click");
   }
 
   moveInOneDirection(contRow, contCol, notRepeat) {
@@ -33,6 +32,21 @@ class Piece {
       movRow += contRow;
       movCol += contCol;
     }
+  }
+
+  //If the move of a piece creates jaque for its own king, the move will not be taken into account.
+  filterMovGenerateJaque() {
+    this.movements = this.movements.filter((mov) => {
+      return !moveGenerateJaque(mov.row, mov.column, this);
+    });
+  }
+
+  showMoves(board) {
+    this.move(board);
+    this.filterMovGenerateJaque();
+    board[this._row][this._column].classList.add("click");
+    //Highlight Possible Movements
+    highlightMov(board, this);
   }
 
   clearMovements() {
@@ -95,7 +109,6 @@ class Peon extends Piece {
     super.move(board);
     this.checkCapture(mov);
 
-    //Highlight Possible Movements
     if (checkPeonMov(this.row + mov, this.column)) {
       this.movements.push({ row: this.row + mov, column: this.column });
 
@@ -109,7 +122,6 @@ class Peon extends Piece {
         }
       }
     }
-    highlightMov(board, this);
   }
 }
 
@@ -153,8 +165,6 @@ class Torre extends Piece {
     super.moveInOneDirection(-1, 0, false);
     super.moveInOneDirection(0, -1, false);
     super.moveInOneDirection(0, 1, false);
-
-    highlightMov(board, this);
   }
 }
 
@@ -170,8 +180,6 @@ class Obispo extends Piece {
     super.moveInOneDirection(-1, -1, false);
     super.moveInOneDirection(1, -1, false);
     super.moveInOneDirection(-1, 1, false);
-
-    highlightMov(board, this);
   }
 }
 
@@ -191,8 +199,6 @@ class Caballo extends Piece {
     super.moveInOneDirection(1, -2, true);
     super.moveInOneDirection(-1, -2, true);
     super.moveInOneDirection(-1, 2, true);
-
-    highlightMov(board, this);
   }
 }
 
@@ -215,8 +221,6 @@ class Rey extends Piece {
 
     //  Eliminate moves that put a king adjacent to another
     this.removeAdjacentKingMovements();
-
-    highlightMov(board, this);
   }
 
   removeAdjacentKingMovements() {
@@ -253,8 +257,6 @@ class Reina extends Piece {
     super.moveInOneDirection(-1, -1, false);
     super.moveInOneDirection(1, -1, false);
     super.moveInOneDirection(-1, 1, false);
-
-    highlightMov(board, this);
   }
 }
 
@@ -328,7 +330,6 @@ pieces.push(obispo_b_2);
 pieces.push(caballo_b_2);
 pieces.push(torre_b_2);
 
-let pieceMoving = false;
 let selectedPiece;
 let playerTurn = "b";
 let board = [];
@@ -363,12 +364,6 @@ const setPieces = (board, pieces) => {
     div.appendChild(img);
   });
 };
-// const img = document.createElement("img");
-// img.src = `./assets/img/b_peon.png`;
-// img.alt = `$peon`;
-// img.classList.add(`peon_b_4`);
-// const div = board[3][3];
-// div.appendChild(img);
 
 //NOTE:
 const checkMov = (row, col, pieceName) => {
@@ -376,7 +371,6 @@ const checkMov = (row, col, pieceName) => {
   const typePiece = pieceName.split("_")[0];
   // check if the position is within the limits of the board
   if (row < 0 || row > 7 || col < 0 || col > 7) return false;
-
   if (board[row][col].hasChildNodes()) {
     // check de color of the piece
     // if the piece in that position has the contrary colour, then it can be killed
@@ -398,6 +392,8 @@ const highlightMov = (board, piece) => {
       const pieceMov = board[mov.row][mov.column];
       pieceMov.classList.add("click");
     });
+  } else {
+    clearBoard();
   }
 };
 
@@ -418,6 +414,10 @@ const findPiece = (pieces, name) => {
   return piece;
 };
 
+const findKing = (pieces, color) => {
+  return pieces.find((piece) => piece.name === `rey_${color}`);
+};
+
 //NOTE:
 const checkTurn = (piece) => (playerTurn === piece.color ? true : false);
 
@@ -428,115 +428,109 @@ const changeTurn = () => {
 
 //REVIEW:
 function isJaque(color) {
-  // Encuentra la posición del rey del color especificado
-  const king = pieces.find((piece) => piece.name === `rey_${color}`);
+  // Find the position of the king of the specified color
+  const king = findKing(pieces, color);
   const kingRow = king.row;
   const kingColumn = king.column;
 
-  // Encuentra las piezas del otro color
+  // Find the pieces of the other color
   const opponentPieces = pieces.filter((piece) => piece.color !== color);
 
-  // Verifica si alguna pieza del oponente puede moverse a la posición del rey
+  // Check if any opponent's piece can move to the king position
   for (const opponentPiece of opponentPieces) {
     opponentPiece.move(board);
     clearBoard();
     for (const movement of opponentPiece.movements) {
       if (movement.row === kingRow && movement.column === kingColumn) {
-        board[movement.row][movement.column]?.classList?.add("jaque");
-        return true; // El rey está en jaque
+        //board[movement.row][movement.column]?.classList?.add("jaque");
+        return true; // The king is in jaque
       }
     }
   }
 
-  return false; // El rey no está en jaque
+  return false; // The king isn't in jaque
 }
+
+const moveGenerateJaque = (rowToMove, colToMove, piece) => {
+  const tempRow = piece.row;
+  const tempColumn = piece.column;
+  piece.row = rowToMove;
+  piece.column = colToMove;
+
+  let killPiece = false;
+  let pieceToDelete;
+  let deletedPieceIndex;
+  let imgDeletedPiece;
+  //Check if there is a contrary piece in that position, and remove the piece
+  if (board[piece.row][piece.column].hasChildNodes()) {
+    pieceToDelete = findPiece(
+      pieces,
+      board[piece.row][piece.column].firstElementChild.classList.value
+    );
+    deletedPieceIndex = pieces.indexOf(pieceToDelete);
+    pieces.splice(deletedPieceIndex, 1)[0];
+
+    // Delete the piece from the array of pieces and from the board
+    imgDeletedPiece = board[piece.row][piece.column].firstElementChild;
+    board[piece.row][piece.column].removeChild(
+      board[piece.row][piece.column].firstElementChild
+    );
+
+    // A piece was killed
+    killPiece = true;
+  }
+
+  //Move the piece to the selected box
+  board[piece.row][piece.column].appendChild(
+    board[tempRow][tempColumn].firstElementChild
+  );
+
+  if (!isJaque(piece.color)) {
+    //The movement doesn't generate jaque
+
+    //Put everything as it was before
+    restorePosition(
+      board,
+      pieces,
+      tempRow,
+      tempColumn,
+      piece,
+      killPiece,
+      pieceToDelete,
+      imgDeletedPiece,
+      deletedPieceIndex
+    );
+    return false;
+  }
+
+  restorePosition(
+    board,
+    pieces,
+    tempRow,
+    tempColumn,
+    piece,
+    killPiece,
+    pieceToDelete,
+    imgDeletedPiece,
+    deletedPieceIndex
+  );
+
+  return true; //The movement generate jaque
+};
 
 //REVIEW:
 function checkForLegalMoves(kingColor) {
-  // Obtener todas las piezas del jugador actual
+  // Get all the pieces of the current player
   const currentPlayerPieces = pieces.filter(
     (piece) => piece.color === kingColor
   );
-  // Verificar si alguna de las piezas puede moverse para sacar al rey del jaque o bloquear la amenaza
+  // Check if any of the pieces can move to remove the king from jaque or block the threat
   for (const piece of currentPlayerPieces) {
     piece.move(board);
     clearBoard();
     for (const movement of piece.movements) {
       // Simulate the move to see if it gets the king out of jaque or blocks the threat
-      const tempRow = piece.row;
-      const tempColumn = piece.column;
-      piece.row = movement.row;
-      piece.column = movement.column;
-
-      let killPiece = false;
-      let pieceToDelete;
-      let deletedPieceIndex;
-      let imgDeletedPiece;
-      //Check if there is a contrary piece in that position, and remove the piece
-      if (board[piece.row][piece.column].hasChildNodes()) {
-        pieceToDelete = findPiece(
-          pieces,
-          board[piece.row][piece.column].firstElementChild.classList.value
-        );
-        deletedPieceIndex = pieces.indexOf(pieceToDelete);
-        pieces.splice(deletedPieceIndex, 1)[0];
-
-        // Delete the piece from the array of pieces and from the board
-        imgDeletedPiece = board[piece.row][piece.column].firstElementChild;
-        board[piece.row][piece.column].removeChild(
-          board[piece.row][piece.column].firstElementChild
-        );
-
-        // A piece was killed
-        killPiece = true;
-      }
-
-      //Move the piece to the selected box
-      board[piece.row][piece.column].appendChild(
-        board[tempRow][tempColumn].firstElementChild
-      );
-
-      if (!isJaque(kingColor)) {
-        // The movement put the king out of jaque
-
-        //Put everything as it was before
-        restorePosition(
-          board,
-          pieces,
-          tempRow,
-          tempColumn,
-          piece,
-          killPiece,
-          pieceToDelete,
-          imgDeletedPiece,
-          deletedPieceIndex
-        );
-
-        // board[tempRow][tempColumn].appendChild(
-        //   board[piece.row][piece.column].firstElementChild
-        // );
-
-        // if (killPiece) {
-        //   board[piece.row][piece.column].appendChild(imgDeletedPiece);
-        //   pieces.splice(deletedPieceIndex, 0, pieceToDelete);
-        // }
-
-        // piece.row = tempRow; // Restore the original position of the piece
-        // piece.column = tempColumn;
-        return true;
-      }
-
-      restorePosition(
-        board,
-        pieces,
-        tempRow,
-        tempColumn,
-        piece,
-        killPiece,
-        pieceToDelete,
-        imgDeletedPiece,
-        deletedPieceIndex
-      );
+      if (!moveGenerateJaque(movement.row, movement.column, piece)) return true;
     }
   }
 
@@ -560,7 +554,9 @@ const restorePosition = (
   );
 
   if (wasAPieceKilled) {
-    board[originalRow][originalColumn].appendChild(imgOfPieceDeleted);
+    board[pieceToRestore.row][pieceToRestore.column].appendChild(
+      imgOfPieceDeleted
+    );
     pieces.splice(deletedPieceIndex, 0, pieceDeleted);
   }
 
@@ -581,13 +577,12 @@ setPieces(board, pieces);
         pieces,
         this.firstElementChild.classList.value.split(" ")[0]
       );
-      selectedPiece = piece;
-      piece.move(board);
+
       //check if the user in turn is playing
-      // if (checkTurn(piece)) {
-      //   selectedPiece = piece;
-      //   piece.move(board);
-      // }
+      if (checkTurn(piece)) {
+        selectedPiece = piece;
+        piece.showMoves(board);
+      }
     } else {
       const userMove = this?.firstElementChild?.className;
       //Check the user dosen't click the same piece or one not posible movement
@@ -615,25 +610,48 @@ setPieces(board, pieces);
         selectedPiece.row = Number(newRow);
         selectedPiece.column = Number(newColumn);
 
+        clearBoard();
+
         // Check if the moved piece puts the opponent king in jaque
         const opponentKingColor = selectedPiece.color === "b" ? "n" : "b";
         if (isJaque(opponentKingColor)) {
-          console.log(`El rey ${opponentKingColor} está en jaque.`);
+          console.log(
+            `El rey ${
+              opponentKingColor === "b" ? "blanco" : "negro"
+            } está en jaque.`
+          );
 
-          // Verificar si hay movimientos disponibles para sacar al rey del jaque o bloquear la amenaza
+          // Check if there are moves available to remove the king from jaque or block the threat (check if it is jaque mate)
           const isLegalMoveAvailable = checkForLegalMoves(opponentKingColor);
 
           if (!isLegalMoveAvailable) {
             console.log(
-              `Jaque mate. ¡El jugador ${selectedPiece.color} ha ganado!`
+              `Jauqe Mate. Ha ganado el jugador con las fichas ${
+                selectedPiece.color === "b" ? "blancas" : "negras"
+              }`
             );
-            // Aquí puedes realizar cualquier acción adicional que necesites para el jaque mate
+            jaqueMate(pieces, opponentKingColor);
           }
+
+          jaque(pieces, opponentKingColor);
         }
 
-        clearBoard();
         changeTurn();
       }
     }
   });
 });
+
+const jaqueMate = (pieces, kingColor) => {
+  const kingInMate = findKing(pieces, kingColor);
+  board[kingInMate.row][kingInMate.column].firstElementChild.classList.add(
+    "jaque_mate"
+  );
+  board[kingInMate.row][kingInMate.column].style.background = "red";
+  board[kingInMate.row][kingInMate.column].style.opacity = "0.6";
+};
+
+const jaque = (pieces, kingColor) => {
+  const kingInMate = findKing(pieces, kingColor);
+  board[kingInMate.row][kingInMate.column].classList.add("jaque");
+};

@@ -48,17 +48,24 @@ body {
   background-color: bisque;
 }
 
+.jaque_mate {
+  rotate: 90deg;
+}
+
+.jaque {
+  box-shadow: 0 3px 4px 0 black;
+  opacity: 0.5;
+}
+
+.rotate_board {
+  rotate: 180deg;
+}
+
 /* .jaque {
   box-shadow: 0 3px 4px 0 black;
-  opacity: 0.5;
-  background-color: rgb(231, 131, 131);
-} */
-
-.jaque_mate {
-  box-shadow: 0 3px 4px 0 black;
-  opacity: 0.5;
+  opacity: 0.1;
   background-color: red;
-}
+} */
 
 /* .column {
   box-shadow: 0 3px 4px 0 #dbedf3;
