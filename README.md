@@ -4,7 +4,7 @@ A simple chess game built using vanilla JavaScript. This game features a dynamic
 
 ## Table of Contents
 
-1. [Tech Stack](#stack)
+1. [Tech Stack](#tech_stack)
 2. [Features](#features)
 3. [Installation](#installation)
 4. [Usage](#usage)
